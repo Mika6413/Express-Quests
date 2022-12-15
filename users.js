@@ -8,7 +8,7 @@ const getUsers = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      res.status(200).send("Error retrieving data from database");
+      res.status(500).send("Error retrieving data from database");
     });
 };
 
@@ -31,6 +31,7 @@ const getUserById = (req, res) => {
 };
 
 const postUser = (req, res) => {
+  const {firstname, lastname, email, city, language} = req.body;
   database
     .query(
       "INSERT INTO users(firstname, lastname, email, city, language) VALUES (?, ?, ?, ?, ?, ?)",
@@ -39,14 +40,37 @@ const postUser = (req, res) => {
     .then(([result]) => {
       res.location(`/api/users/${result.insertId}`).sendStatus(201);
     })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send("Error saving the user");
-    });
+    
+      .catch((err) => {
+        console.error(err);
+        res.status(500).send("Error saving the user");
+      });
+    };
+
+const updateUser = (req, res) => {
+  const userId = parseInt(req.params.id);
+  const {firstname, lastname, email, city, language, id} = req.body;
+database
+.query(
+  "UPDATE users SET firstname = ?, lastname = ?, email = ?, city = ?, language = ?, WHERE id = ?",
+  [firstname, lastname, email, city, language, id]
+  )
+.then(([result]) => {
+  if (result.affectedRows === 0) {
+    res.status(404).send("Not found");
+  } else {
+    res.senStatus(204);
+  }
+})
+.catch((err) => {
+  console.error(err);
+  res.status(500).send("Error editing user");
+});
 };
 
 module.exports = {
   getUsers,
   getUserById,
   postUser,
+  updateUser,
 };
